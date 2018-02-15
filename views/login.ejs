@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="<%= (typeof languageCode  !== 'undefined')?languageCode:""  %>">
+<head>
+    <meta charset="UTF-8">
+    <title><%= pageTitle %></title>
+</head>
+<body>
+
+<a href='https://www.facebook.com/v2.12/dialog/oauth?client_id=<%= env.facebook.appId %>&response_type=code&redirect_uri=<%= env.facebook.redirectUri %>&scopes=public_profile'>Ingresar con facebook</a>
+
+
+</body>
+</html>

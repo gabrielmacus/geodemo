@@ -1,0 +1,11 @@
+{
+ "appName": "Geodemo",
+ "appUrl":"http://localhost",
+ "facebook":
+ {
+  "redirectUri":"http://localhost/login",
+  "appId":437165490036719,
+  "version":"v2.12",
+  "appSecret":"5c41561fc3376519a70cd6df8a78561f"
+ }
+}
