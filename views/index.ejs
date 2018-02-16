@@ -7,14 +7,40 @@
 
 <body>
 
-<input id="endpointOffer" placeholder="Connect with...">
-<button onclick="connectWith(document.querySelector('#endpointOffer').value)">Connect</button>
 
 
 
 <script>
-    //var wsConnection = new WebSocket("ws://localhost:9090");
+    var wsConnection = false;
 
+
+    function connectWs() {
+        wsConnection = new WebSocket("ws://localhost:9090");
+        // When the connection is open, send some data to the server
+        wsConnection.onopen = function () {
+
+        };
+
+        // Log errors
+        wsConnection.onerror = function (error) {
+            console.log('WebSocket Error ' + error);
+
+        };
+
+        // Log messages from the server
+        wsConnection.onmessage = function (e) {
+
+            console.log('Server: ' + e.data);
+
+
+
+        };
+    }
+
+    connectWs();
+
+
+    /*
     var rtcOffer=false;
     //creating our RTCPeerConnection object
     var rtcConfiguration = {
@@ -80,22 +106,9 @@
 
             console.log(event);
         }
-    };
-
-    function connectWith(endpointOffer) {
-
-        if(endpointOffer == rtcOffer.sdp)
-        {
-            return false;
-        }
-
-        rtcPeerConnection.setRemoteDescription(new RTCSessionDescription(endpointOffer));
+    };*/
 
 
-
-
-
-    }
 </script>
 
 

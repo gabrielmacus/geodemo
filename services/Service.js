@@ -7,16 +7,18 @@ const request=require('request');
 
 module.exports=
 {
+    
     LoadConfig:function () {
   
         var path = pt.join(require('app-root-dir').get(),"config.json");
         global.env = JSON.parse(fs.readFileSync(path).toString());
     },
-    CheckAuth:function (req,callback) {
+    CheckAuth:function (req,res,callback) {
 
-        if(req.cookies.fb_token)
+        
+        if(req.cookies && req.cookies.fb_token)
         {
-            return request.get("https://graph.facebook.com/me?access_token="+req.cookies.fb_token,function (err,res,body) {
+            return request.get("https://graph.facebook.com/me?access_token="+req.cookies.fb_token,function (err,response,body) {
 
                 body = JSON.parse(body);
                 if(body.error)
@@ -25,6 +27,10 @@ module.exports=
                 }
                 else
                 {
+                    if(res){
+                        res.cookie('user_name',body.name);
+                        res.cookie('user_id',body.id);
+                    }
                     callback(true);
                 }
             });
