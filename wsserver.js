@@ -31,15 +31,25 @@ const request=require('request');
 app.use(
     function (req,res,next) {
 
-        req.session.sid  = uuidv4();
-        next();
+
+
+        Service.CheckAuth(req,res,function (authenticated) {
+
+            req.session.authenticated =  authenticated;
+            req.session.sid  = uuidv4();
+            next();
+        });
+
+
     }
 );
 
+const User =  require("./models/User");
+const FB = require('fb');
+
 app.get('/login', function (req, res) {
 
-
-    Service.CheckAuth(req,res,function (authenticated) {
+        var authenticated = req.session.authenticated;
 
         if(authenticated)
         {
@@ -65,9 +75,34 @@ app.get('/login', function (req, res) {
 
                     var cookieOpt ={httpOnly:false,maxAge: parseInt(body.expires_in)};
                     res.cookie('fb_token',body.access_token,cookieOpt);
+                    mongoose.connect(global.env.dbstring);
+
+                    FB.setAccessToken(body.access_token);
 
 
-                    req.session.userId  = uuidv4();
+                    FB.api('me?fields=public_profile,first_name,last_name','get',{'access_token':body.access_token}, function (res) {
+                        
+                        if (!res || res.error) {
+                            //TODO: return error
+                        }
+
+                        console.log(res);
+
+                        User.findOneAndUpdate({user_id:body.id}, {user_id:res.id,user_name:res.first_name,last_name:res.last_name,last_login:new Date() }, {upsert: true, 'new': true}, function(err, res) {
+
+                            if(err)
+                            {
+                                //TODO: return error
+                            }
+
+
+                            // res === null
+                        });
+
+
+                    });
+
+
 
                 }
 
@@ -82,7 +117,7 @@ app.get('/login', function (req, res) {
 
         return res.render("login",{pageTitle:global.env.appName,env:global.env});
 
-    });
+
 
 
 
@@ -90,15 +125,11 @@ app.get('/login', function (req, res) {
 
 });
 
-
-
-
 app.get('/', function (req, res) {
 
+    var authenticated = req.session.authenticated;
 
-    Service.CheckAuth(req,res,function (authenticated) {
-
-        if(!authenticated)
+    if(!authenticated)
         {
             //Not authenticated
             return  res.redirect("/login");
@@ -107,14 +138,10 @@ app.get('/', function (req, res) {
         return res.render("index",{pageTitle:global.env.appName,env:global.env});
 
 
-    })
+
 
 });
-
-
-
-
-
+const mongoose = require('mongoose');
 
 
 // set the view engine to ejs
@@ -147,51 +174,47 @@ const cookie = require('cookie');
 //when a user connects to our sever
 wss.on('connection', function(connection,req) {
 
+    var authenticated = req.session.authenticated;
 
 
     var data = {cookies:cookie.parse(req.headers.cookie)};
 
+    if(!authenticated)
+    {
+        return connection.close();
+    }
 
 
-    Service.CheckAuth(data,false,function (authenticated) {
-        if(!authenticated)
-        {
-            return connection.close();
+    WsService.Save(data.cookies.user_id,req.session.sid,connection);
+
+
+    //when server gets a message from a connected user
+    connection.on('message', function(message) {
+
+        var msg = {type:false};
+        //accepting only JSON messages
+        try {
+            msg = JSON.parse(message);
+        } catch (e) {
+
         }
 
+        switch (msg.type)
+        {
 
-        WsService.Save(data.cookies.user_id,req.session.sid,connection);
+        }
 
-        
-        //when server gets a message from a connected user
-        connection.on('message', function(message) {
-
-            var msg = {type:false};
-            //accepting only JSON messages
-            try {
-                msg = JSON.parse(message);
-            } catch (e) {
-
-            }
-
-            switch (msg.type)
-            {
-
-            }
-
-        });
-        connection.on("error", function(e) {
-
-
-        });
-        //when user exits, for example closes a browser window
-        //this may help if we are still in "offer","answer" or "candidate" state
-        connection.on("close", function(e) {
-
-            WsService.DeleteSession(data.cookies.user_id,req.session.sid);
-        });
     });
+    connection.on("error", function(e) {
 
+
+    });
+    //when user exits, for example closes a browser window
+    //this may help if we are still in "offer","answer" or "candidate" state
+    connection.on("close", function(e) {
+
+        WsService.DeleteSession(data.cookies.user_id,req.session.sid);
+    });
 
 
 

@@ -8,5 +8,6 @@
   "version":"v2.12",
   "appSecret":"5c41561fc3376519a70cd6df8a78561f"
  },
- "sessionSecret":"asdopa2"
+ "sessionSecret":"asdopa2",
+ "dbstring":"mongodb://localhost:27017/onix"
 }

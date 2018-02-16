@@ -27,10 +27,11 @@ module.exports=
                 }
                 else
                 {
+                    /*
                     if(res){
                         res.cookie('user_name',body.name);
                         res.cookie('user_id',body.id);
-                    }
+                    }*/
                     callback(true);
                 }
             });
