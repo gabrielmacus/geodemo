@@ -27,11 +27,7 @@ module.exports=
                 }
                 else
                 {
-                    /*
-                    if(res){
-                        res.cookie('user_name',body.name);
-                        res.cookie('user_id',body.id);
-                    }*/
+                 
                     callback(true);
                 }
             });
@@ -41,17 +37,4 @@ module.exports=
 
     }
 
-   /* Render:function (path,template,data,res) {
-
-        fs.readFile(path,function (err,buffer) {
-
-
-            var template = Handlebars.compile(buffer.toString());
-
-
-            res.send(template(data));
-
-
-        });
-    }*/
 }

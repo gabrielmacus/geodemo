@@ -1,4 +1,5 @@
 {
+ "type":"development",
  "appName": "Geodemo",
  "appUrl":"http://localhost",
  "facebook":

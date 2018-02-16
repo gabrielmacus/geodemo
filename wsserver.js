@@ -22,6 +22,15 @@ const sessionParser = session({
     saveUninitialized:false,
     secret: global.env.sessionSecret
 });
+
+const expressNunjucks = require('express-nunjucks');
+const njk = expressNunjucks(app, {
+    watch: ("production" !== global.env.type),
+    noCache: ("production" !== global.env.type)
+});
+
+
+
 app.use(sessionParser);
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -46,6 +55,7 @@ app.use(
 
 const User =  require("./models/User");
 const FB = require('fb');
+const mongoose = require('mongoose');
 
 app.get('/login', function (req, res) {
 
@@ -75,20 +85,18 @@ app.get('/login', function (req, res) {
 
                     var cookieOpt ={httpOnly:false,maxAge: parseInt(body.expires_in)};
                     res.cookie('fb_token',body.access_token,cookieOpt);
-                    mongoose.connect(global.env.dbstring);
+                 
 
                     FB.setAccessToken(body.access_token);
+                    
+                    FB.api('me?fields=picture,id,first_name,last_name','get',{'access_token':body.access_token}, function (res) {
 
-
-                    FB.api('me?fields=public_profile,first_name,last_name','get',{'access_token':body.access_token}, function (res) {
-                        
                         if (!res || res.error) {
                             //TODO: return error
                         }
+                        mongoose.connect(global.env.dbstring);
 
-                        console.log(res);
-
-                        User.findOneAndUpdate({user_id:body.id}, {user_id:res.id,user_name:res.first_name,last_name:res.last_name,last_login:new Date() }, {upsert: true, 'new': true}, function(err, res) {
+                        User.findOneAndUpdate({user_id:body.id}, {picture:res.picture.data.url,user_id:res.id,user_full_name:res.first_name+" "+res.last_name,user_name:res.first_name,user_surname:res.last_name,last_login:new Date() }, {upsert: true, 'new': true}, function(err, res) {
 
                             if(err)
                             {
@@ -141,11 +149,36 @@ app.get('/', function (req, res) {
 
 
 });
-const mongoose = require('mongoose');
+
+app.get('/user/search', function (req, res) {
+
+    var query = (req.query && req.query.q)?req.query.q:false;
+
+    if(query)
+    {
+        mongoose.connect(global.env.dbstring);
+        User.find({'user_full_name':new RegExp(query,'i')}).limit(12).exec(function (err,results) {
+
+            if(err)
+            {
+
+                //TODO: set error
+            }
+
+            console.log(results);
 
 
-// set the view engine to ejs
-app.set('view engine', 'ejs');
+        });
+    }
+    
+    
+    
+    
+
+});
+
+
+
 
 
 

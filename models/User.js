@@ -9,7 +9,9 @@ var UserSchema = new Schema(
         user_id:String,
         user_name:String,
         user_surname:String,
-        last_login:Date
+        user_full_name:String,
+        last_login:Date,
+        picture:String
     }
 );
 
